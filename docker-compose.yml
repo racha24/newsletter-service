@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: newsletter-postgres
+    environment:
+      POSTGRES_DB: newsletterdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - newsletter-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: newsletter-service
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/newsletterdb
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: password
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - newsletter-network
+
+volumes:
+  postgres_data:
+
+networks:
+  newsletter-network:
+    driver: bridge
