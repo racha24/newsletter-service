@@ -1,15 +1,23 @@
 # Multi-stage build for optimized image size
-FROM maven:3.9-eclipse-temurin-17-alpine AS build
+FROM eclipse-temurin:17-jdk-alpine AS build
 
 WORKDIR /app
 
-# Copy pom.xml and download dependencies (cached layer)
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
+# Copy Gradle wrapper and build files
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+
+# Make gradlew executable
+RUN chmod +x gradlew
+
+# Download dependencies (cached layer)
+RUN ./gradlew dependencies --no-daemon
 
 # Copy source code and build
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN ./gradlew clean build -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
@@ -17,7 +25,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 # Copy jar from build stage
-COPY --from=build /app/target/newsletter-service-1.0.0.jar app.jar
+COPY --from=build /app/build/libs/newsletter-service-1.0.0.jar app.jar
 
 # Expose port
 EXPOSE 8080

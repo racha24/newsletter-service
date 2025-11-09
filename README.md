@@ -321,36 +321,70 @@ curl -X POST http://localhost:8080/api/content \
 
 ### Railway.app (Recommended)
 
-1. Create account at [railway.app](https://railway.app)
+Railway automatically detects the Dockerfile and deploys using it.
 
-2. Install Railway CLI:
+#### Option 1: Deploy via GitHub (Easiest)
+
+1. **Create account** at [railway.app](https://railway.app)
+
+2. **Create new project** → Deploy from GitHub repo
+
+3. **Add PostgreSQL database**:
+   - In your project, click "New" → Database → PostgreSQL
+   - Railway automatically creates and links the database
+
+4. **Configure environment variables**:
+   Railway provides PostgreSQL variables automatically:
+   - `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` (auto-generated)
+
+   Add these manually:
+   - `SPRING_PROFILES_ACTIVE` = `prod`
+   - `MAIL_USERNAME` = `your-email@gmail.com`
+   - `MAIL_PASSWORD` = `your-app-password`
+
+5. **Deploy**: Push to GitHub and Railway auto-deploys
+
+6. **Get your URL**: Railway provides a public URL like:
+   ```
+   https://newsletter-service-production-xxxx.up.railway.app
+   ```
+
+#### Option 2: Deploy via Railway CLI
+
+1. Install Railway CLI:
    ```bash
    npm i -g @railway/cli
    ```
 
-3. Login and initialize:
+2. Login and link project:
    ```bash
    railway login
-   railway init
+   railway link
    ```
 
-4. Add PostgreSQL:
+3. Add PostgreSQL:
    ```bash
    railway add
    # Select PostgreSQL
    ```
 
-5. Set environment variables:
+4. Set environment variables:
    ```bash
    railway variables set SPRING_PROFILES_ACTIVE=prod
    railway variables set MAIL_USERNAME=your-email@gmail.com
    railway variables set MAIL_PASSWORD=your-app-password
    ```
 
-6. Deploy:
+5. Deploy:
    ```bash
    railway up
    ```
+
+**Important Notes:**
+- Railway uses the `Dockerfile` for building (Gradle-based multi-stage build)
+- PostgreSQL connection is automatic via `PGHOST`, `PGPORT`, etc. environment variables
+- The build takes ~2-3 minutes for first deployment
+- Subsequent deployments are faster due to Docker layer caching
 
 ### Render.com
 
